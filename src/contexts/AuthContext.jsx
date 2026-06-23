@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
         const rfToken = TokenStore.getRefreshToken();
         const { data } = await axios.post("/auth/refresh", { refreshToken: rfToken });
         
-        const newAccessToken = data.data.accessToken;
+        const newAccessToken = data.accessToken; 
         TokenStore.setAccessToken(newAccessToken);
 
         const { data: me } = await axios.get("/auth/me", {
@@ -39,7 +39,10 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const { data } = await axios.post("/auth/login", { email, password });
-    const { accessToken, refreshToken, user: userData } = data.data;
+    
+    const accessToken = data.accessToken;
+    const refreshToken = data.refreshToken;
+    const userData = data.data;
     
     TokenStore.setAccessToken(accessToken);
     TokenStore.setRefreshToken(refreshToken);
@@ -57,7 +60,7 @@ export function AuthProvider({ children }) {
         headers: { Authorization: `Bearer ${TokenStore.getAccessToken()}` },
       });
     } catch { 
-      /* Mengabaikan error logout agar client-side tetap ter-clear jika server down */ 
+      /* Mengabaikan error logout */ 
     }
     TokenStore.clear();
     setUser(null);

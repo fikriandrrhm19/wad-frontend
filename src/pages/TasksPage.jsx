@@ -17,7 +17,7 @@ export function TasksPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = filter !== "ALL" ? { status: filter } : {};
+      const params = filter !== "ALL" ? { status: filter.toLowerCase() } : {};
       const res = await taskService.getAll(params);
       
       setTasks(res.data || []);
@@ -32,10 +32,35 @@ export function TasksPage() {
     fetchTasks();
   }, [fetchTasks]);
 
+  const preparePayload = (formData, isEditMode = false) => {
+    const payload = {
+      title: formData.title,
+      description: formData.description || "", 
+      status: formData.status ? formData.status.toLowerCase() : "todo",
+      priority: formData.priority ? formData.priority.toLowerCase() : "medium",
+    };
+
+    const rawDate = formData.dueDate ? String(formData.dueDate).trim() : "";
+
+    if (rawDate === "" || rawDate.includes("Invalid Date")) {
+      payload.dueDate = isEditMode ? (editTarget?.dueDate ? editTarget.dueDate : null) : null;
+    } else {
+      const timestamp = Date.parse(rawDate);
+      if (!isNaN(timestamp)) {
+        payload.dueDate = new Date(timestamp).toISOString();
+      } else {
+        payload.dueDate = isEditMode ? (editTarget?.dueDate ? editTarget.dueDate : null) : null;
+      }
+    }
+
+    return payload;
+  };
+
   // CREATE — Membuat data task baru
   const handleCreate = async (formData) => {
     try {
-      const newTask = await taskService.create(formData);
+      const cleanData = preparePayload(formData, false);
+      const newTask = await taskService.create(cleanData);
       setTasks((prev) => [newTask, ...prev]);
       setShowForm(false);
     } catch (err) {
@@ -43,7 +68,6 @@ export function TasksPage() {
     }
   };
 
-  // EDIT — Membuka form modal dengan melemparkan data kartu yang dipilih ke target edit
   const handleEditClick = (task) => {
     setEditTarget(task);
     setShowForm(true);
@@ -52,7 +76,9 @@ export function TasksPage() {
   // UPDATE — Menyimpan perubahan data task lama
   const handleUpdate = async (formData) => {
     try {
-      const updated = await taskService.update(editTarget.id, formData);
+      const cleanData = preparePayload(formData, true);
+      const updated = await taskService.update(editTarget.id, cleanData);
+      
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
       setShowForm(false);
       setEditTarget(null);

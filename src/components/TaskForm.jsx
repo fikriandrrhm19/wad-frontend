@@ -4,34 +4,51 @@ import { useEffect } from "react";
 export function TaskForm({ onSubmit, onCancel, initialData = null }) {
   const isEdit = !!initialData;
 
+  const getNormalizedDefaultValues = () => {
+    if (!initialData) {
+      return {
+        title: "",
+        description: "",
+        status: "todo",
+        priority: "medium",
+        dueDate: "",
+      };
+    }
+    return {
+      ...initialData,
+      status: initialData.status ? initialData.status.toLowerCase() : "todo",
+      priority: initialData.priority ? initialData.priority.toLowerCase() : "medium",
+      dueDate: (initialData.dueDate && !initialData.dueDate.includes("Invalid Date")) 
+        ? initialData.dueDate.split("T")[0] 
+        : "",
+    };
+  };
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm({
-    defaultValues: initialData || {
-      title: "",
-      description: "",
-      status: "TODO",
-      priority: "MEDIUM",
-      dueDate: "",
-    },
+    defaultValues: getNormalizedDefaultValues(),
   });
 
   useEffect(() => {
     if (initialData) {
-      const formattedData = {
+      reset({
         ...initialData,
-        dueDate: initialData.dueDate ? initialData.dueDate.split("T")[0] : "",
-      };
-      reset(formattedData);
+        status: initialData.status ? initialData.status.toLowerCase() : "todo",
+        priority: initialData.priority ? initialData.priority.toLowerCase() : "medium",
+        dueDate: (initialData.dueDate && !initialData.dueDate.includes("Invalid Date")) 
+          ? initialData.dueDate.split("T")[0] 
+          : "",
+      });
     } else {
       reset({
         title: "",
         description: "",
-        status: "TODO",
-        priority: "MEDIUM",
+        status: "todo",
+        priority: "medium",
         dueDate: "",
       });
     }
@@ -58,18 +75,18 @@ export function TaskForm({ onSubmit, onCancel, initialData = null }) {
             <div className="form-group">
               <label>Status</label>
               <select {...register("status")}>
-                <option value="TODO">Belum Dimulai</option>
-                <option value="IN_PROGRESS">Sedang Dikerjakan</option>
-                <option value="DONE">Selesai</option>
+                <option value="todo">Belum Dimulai</option>
+                <option value="in_progress">Sedang Dikerjakan</option>
+                <option value="done">Selesai</option>
               </select>
             </div>
 
             <div className="form-group">
               <label>Prioritas</label>
               <select {...register("priority")}>
-                <option value="LOW">Rendah</option>
-                <option value="MEDIUM">Sedang</option>
-                <option value="HIGH">Tinggi</option>
+                <option value="low">Rendah</option>
+                <option value="medium">Sedang</option>
+                <option value="high">Tinggi</option>
               </select>
             </div>
           </div>

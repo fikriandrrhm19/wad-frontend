@@ -3,7 +3,7 @@ import api from "../lib/axios";
 export const taskService = {
   getAll: async (params = {}) => {
     const { data } = await api.get("/tasks", { params });
-    return data;
+    return data; 
   },
 
   getById: async (id) => {
