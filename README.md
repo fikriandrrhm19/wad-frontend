@@ -101,8 +101,3 @@ Gunakan kredensial akun default hasil *seeding* database backend berikut untuk p
 * **Akun Administrator (ADMIN)**:
   * Email: `admin@example.com`
   * Password: `password_admin_123`
-
-## License
-
-This project is licensed under the MIT License.
-See the LICENSE file for details.
