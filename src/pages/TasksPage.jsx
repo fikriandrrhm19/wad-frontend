@@ -14,7 +14,7 @@ export function TasksPage() {
   const [filter, setFilter] = useState("ALL");
 
   useRealTimeTasks(setTasks);
-  
+
   // READ — Mengambil semua data task dari backend (dilengkapi filter status)
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -63,8 +63,16 @@ export function TasksPage() {
   const handleCreate = async (formData) => {
     try {
       const cleanData = preparePayload(formData, false);
-      const newTask = await taskService.create(cleanData);
-      setTasks((prev) => [newTask, ...prev]);
+      const res = await taskService.create(cleanData);
+      
+      const newTask = res.data?.data || res.data || res; 
+      
+      setTasks((prev) => {
+        const exists = prev.some(t => t.id === newTask.id);
+        if (exists) return prev;
+        return [newTask, ...prev];
+      });
+      
       setShowForm(false);
     } catch (err) {
       alert(err.response?.data?.error?.message || "Gagal membuat task");

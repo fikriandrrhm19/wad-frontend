@@ -15,7 +15,7 @@ export function useRealTimeTasks(setTasks) {
 
         const onTaskCreated = ({ task }) => {
             setTasks(prev => {
-                const exists = prev.some(t => t.id === task.id);
+                const exists = prev.some(t => Number(t.id) === Number(task.id));
                 if (exists) return prev;
                 return [task, ...prev];
             });

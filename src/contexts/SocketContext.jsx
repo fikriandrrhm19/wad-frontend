@@ -21,9 +21,9 @@ export function SocketProvider({ children }) {
             return;
         }
 
-        const socket = io(window.location.origin, {
-            auth: { 
-                token: TokenStore.getAccessToken() 
+        const socket = io("http://localhost:3000", {
+            auth: (cb) => {
+                cb({ token: TokenStore.getAccessToken() });
             },
             transports: ["websocket", "polling"],
             reconnectionAttempts: 5,
