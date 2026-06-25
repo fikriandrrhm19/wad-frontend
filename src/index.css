@@ -47,6 +47,27 @@ body {
   font-size: 0.9rem; 
 }
 
+/* ── Real-time indicator di Navbar ── */
+.rt-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+}
+.rt-dot {
+  width: 8px; 
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+.rt-label { 
+  color: #d1fae5; 
+  font-size: 0.8rem; 
+}
+
 /* ── Halaman Utama ── */
 .main-content { 
   max-width: 1100px; 
@@ -356,4 +377,14 @@ body {
 .role-badge.admin { 
   background: #fef3c7; 
   color: #92400e; 
+}
+
+/* ── ANIMATIONS ── */
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
