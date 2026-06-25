@@ -62,6 +62,23 @@ export function SocketProvider({ children }) {
         };
     }, [user]); 
 
+    useEffect(() => {
+        const handleTokenRefresh = (e) => {
+            if (socketRef.current) {
+                console.log("[Socket] Memperbarui auth payload dengan token baru hasil rotasi.");
+                socketRef.current.auth = { token: e.detail.token };
+                
+                socketRef.current.disconnect().connect();
+            }
+        };
+
+        window.addEventListener("token:refreshed", handleTokenRefresh);
+        
+        return () => {
+            window.removeEventListener("token:refreshed", handleTokenRefresh);
+        };
+    }, []);
+
     return (
         <SocketContext.Provider value={{ socket: socketRef.current, isConnected, onlineCount }}>
             {children}
