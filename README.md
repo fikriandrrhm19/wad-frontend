@@ -4,10 +4,11 @@
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![React Router](https://img.shields.io/badge/React_Router_v6-CA4245?style=flat-square&logo=react-router&logoColor=white)](https://reactrouter.com/)
 [![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white)](https://axios-http.com/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO_4.x-010101?style=flat-square&logo=socketdotio&logoColor=white)](https://socket.io/)
 
-Aplikasi *Single Page Application* (SPA) dari React dan Vite untuk manajemen task. Terintegrasi dengan RESTful API backend, support autentikasi dengan JWT, proteksi rute, dan operasi CRUD.
+Aplikasi *Single Page Application* (SPA) dari React dan Vite untuk manajemen task. Terintegrasi dengan RESTful API backend, support autentikasi dengan JWT, proteksi rute, operasi CRUD, serta sinkronisasi data dan notifikasi secara real-time.
 
-Proyek ini merupakan implementasi frontend yang dikerjakan sebagai bagian dari praktikum **Unit 2 (Minggu 8)** mata kuliah **Web Advanced Development 2 (WADV2)** pada Program Studi S1 Sistem Informasi dan Teknologi, Fakultas Ilmu Komputer, Universitas Cakrawala.
+Proyek ini merupakan implementasi frontend yang dikerjakan sebagai bagian dari praktikum **Unit 2** mata kuliah **Web Advanced Development 2 (WADV2)** pada Program Studi S1 Sistem Informasi dan Teknologi, Fakultas Ilmu Komputer, Universitas Cakrawala.
 
 ## Features
 
@@ -17,6 +18,9 @@ Frontend ini membuat seluruh komponen menjadi satu kesatuan aplikasi dengan fitu
 * **Global Authentication & Token Rotation**.
 * **Rute yang Terproteksi**.
 * **Abstraksi Service Layer & Full CRUD Tasks**.
+* **Real-Time WebSocket Integration**.
+* **Reactive Toast Notifications**.
+* **Live Connection Status Indicator**.
 
 ## Architecture & Core Tech Stack
 
@@ -31,6 +35,7 @@ Client ini memisahkan manajemen state global, pengelolaan komponen secara modula
 | Routing           | React Router v6        | Navigasi halaman dan proteksi rute   |
 | Form Management   | React Hook Form        | Penanganan input state dan validasi form |
 | HTTP Client       | Axios                  | Komunikasi data asinkronus ke API    |
+| Real-Time Engine  | Socket.IO Client 4.x   | WebSockets                           |
 | State Management  | Context API            | Manajemen sesi autentikasi global     |
 
 ### Project Structure
@@ -44,8 +49,13 @@ wad-frontend
 │  │  ├─ ProtectedRoute.jsx                     # Komponen pelindung rute otorisasi
 │  │  ├─ TaskCard.jsx                           # Komponen presentasional task card
 │  │  └─ TaskForm.jsx                           # Form modal untuk dialog Create & Edit
+│  │  └─ ToastContainer.jsx                     # Container presenter antrean floating toast notification
 │  ├─ contexts/
 │  │  └─ AuthContext.jsx                        # Penyedia state sesi login dan refresh token
+│  │  ├─ NotifContext.jsx                       # Penyedia state stack toast alerts global
+│  │  └─ SocketContext.jsx                      # Pengelola lifecycle koneksi socket dan token refresh sync
+│  ├─ hooks/
+│  │  └─ useRealTimeTasks.js                    # Custom hook pemetaan listeners event Socket IO ke state UI
 │  ├─ lib/
 │  │  ├─ axios.js                               # Client Axios dengan interceptor JWT
 │  │  └─ tokenStore.js                          # Utility penyimpanan token di storage
