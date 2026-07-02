@@ -1,0 +1,11 @@
+networks:
+  wad-project_wad-network:
+    external: true
+
+services:
+  wad-frontend-app:
+    image: wad-frontend:latest
+    container_name: wad-frontend-app
+    restart: always
+    networks:
+      - wad-project_wad-network
