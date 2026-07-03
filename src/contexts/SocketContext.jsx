@@ -21,7 +21,7 @@ export function SocketProvider({ children }) {
             return;
         }
 
-        const socket = io("http://localhost:3000", {
+        const socket = io(import.meta.env.VITE_API_URL || "https://wad-api.fai.my.id", {
             auth: (cb) => {
                 cb({ token: TokenStore.getAccessToken() });
             },
