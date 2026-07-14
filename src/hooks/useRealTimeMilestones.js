@@ -1,15 +1,22 @@
 import { useEffect } from "react";
 import { useSocket } from "../contexts/SocketContext";
 import { useNotif } from "../contexts/NotifContext";
+import { useAuth } from "../contexts/AuthContext";
 
 export function useRealTimeMilestones(setMilestones) {
     const { socket } = useSocket();
     const { addToast } = useNotif();
+    const { user } = useAuth();
 
     useEffect(() => {
-        if (!socket) return;
+        if (!socket || !user) return;
 
-        const onMilestoneCreated = ({ milestone }) => {
+        const onMilestoneCreated = (payload) => {
+            const milestone = payload.milestone || payload.data || payload;
+            if (!milestone || !milestone.id) return;
+
+            if (user.role !== 'ADMIN' && Number(milestone.userId) !== Number(user.userId)) return;
+
             setMilestones(prev => {
                 const exists = prev.some(m => Number(m.id) === Number(milestone.id));
                 if (exists) return prev;
@@ -17,8 +24,13 @@ export function useRealTimeMilestones(setMilestones) {
             });
         };
 
-        const onMilestoneUpdated = ({ milestone }) => {
-            setMilestones(prev => prev.map(m => m.id === milestone.id ? milestone : m));
+        const onMilestoneUpdated = (payload) => {
+            const milestone = payload.milestone || payload.data || payload;
+            if (!milestone || !milestone.id) return;
+
+            if (user.role !== 'ADMIN' && Number(milestone.userId) !== Number(user.userId)) return;
+
+            setMilestones(prev => prev.map(m => Number(m.id) === Number(milestone.id) ? milestone : m));
             
             addToast({
                 type: "INFO",
@@ -27,8 +39,11 @@ export function useRealTimeMilestones(setMilestones) {
             });
         };
 
-        const onMilestoneDeleted = ({ milestoneId }) => {
-            setMilestones(prev => prev.filter(m => m.id !== milestoneId));
+        const onMilestoneDeleted = (payload) => {
+            const milestoneId = payload.milestoneId !== undefined ? payload.milestoneId : payload;
+            if (!milestoneId) return;
+
+            setMilestones(prev => prev.filter(m => Number(m.id) !== Number(milestoneId)));
         };
 
         socket.on("milestone:created", onMilestoneCreated);
@@ -40,5 +55,5 @@ export function useRealTimeMilestones(setMilestones) {
             socket.off("milestone:updated", onMilestoneUpdated);
             socket.off("milestone:deleted", onMilestoneDeleted);
         };
-    }, [socket, setMilestones, addToast]);
+    }, [socket, setMilestones, addToast, user]);
 }
