@@ -22,6 +22,9 @@ export function MilestoneDetailPage() {
     try {
       const data = await milestoneService.getById(id);
       setMilestone(data);
+      if (data && data.dueDate) {
+        data.dueDate = new Date(data.dueDate).toISOString().split('T')[0];
+      }
       reset(data);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Gagal memuat rincian milestone");
@@ -44,7 +47,7 @@ export function MilestoneDetailPage() {
     const handleMilestoneUpdate = (payload) => {
       const updated = payload.milestone || payload.data || payload;
       if (updated && Number(updated.id) === Number(id)) {
-        setMilestone((prev) => ({ ...prev, ...updated }));
+        setMilestone((prev) => ({ ...prev, ...updated, tasks: prev.tasks }));
       }
     };
 
@@ -63,7 +66,7 @@ export function MilestoneDetailPage() {
 
   const handleToggleStatus = async () => {
     if (!milestone) return;
-    const nextStatus = milestone.status === "ACHIEVED" ? "PENDING" : "ACHIEVED";
+    const nextStatus = milestone.status === "ACHIEVED" ? "pending" : "achieved";
     try {
       const data = await milestoneService.update(id, { status: nextStatus });
       const updated = data?.milestone || data?.data || data;
@@ -75,6 +78,9 @@ export function MilestoneDetailPage() {
 
   const handleEditSubmit = async (formData) => {
     try {
+      if (formData.status) {
+        formData.status = formData.status.toLowerCase();
+      }
       const data = await milestoneService.update(id, formData);
       const updated = data?.milestone || data?.data || data;
       setMilestone((prev) => ({ ...prev, ...updated, tasks: prev.tasks }));
