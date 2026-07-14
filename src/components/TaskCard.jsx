@@ -11,44 +11,25 @@ export function TaskCard({ task, onEdit, onDelete }) {
     HIGH: { label: "Tinggi", color: "#dc2626" },
   };
 
-  const s = statusConfig[task.status] || statusConfig.TODO;
-  const p = priorityConfig[task.priority] || priorityConfig.MEDIUM;
+  const s = statusConfig[task.status?.toUpperCase()] || statusConfig.TODO;
+  const p = priorityConfig[task.priority?.toUpperCase()] || priorityConfig.MEDIUM;
 
   return (
     <div className="task-card">
       <div className="task-card-header">
         <h3 className="task-title">{task.title}</h3>
         <div className="task-actions">
-          <button onClick={() => onEdit(task)} className="btn-icon" title="Ubah">
-            ✏
-          </button>
-          <button onClick={() => onDelete(task.id)} className="btn-icon" title="Hapus">
-            🗑
-          </button>
+          <button onClick={() => onEdit(task)} className="btn-icon">✏</button>
+          <button onClick={() => onDelete(task.id)} className="btn-icon">🗑</button>
         </div>
       </div>
-
-      {/* Hanya tampilkan deskripsi jika datanya tersedia */}
-      {task.description && (
-        <p className="task-description">{task.description}</p>
-      )}
-
+      {task.description && <p className="task-description">{task.description}</p>}
       <div className="task-card-footer">
-        <span className="badge" style={{ backgroundColor: s.color }}>
-          {s.label}
-        </span>
-        
-        <span className="badge-outline" style={{ borderColor: p.color, color: p.color }}>
-          {p.label}
-        </span>
-
+        <span className="badge" style={{ backgroundColor: s.color }}>{s.label}</span>
+        <span className="badge-outline" style={{ borderColor: p.color, color: p.color }}>{p.label}</span>
         {task.dueDate && (
           <span className="due-date">
-            📅 {new Date(task.dueDate).toLocaleDateString("id-ID", {
-              year: "numeric",
-              month: "short",
-              day: "numeric"
-            })}
+            {new Date(task.dueDate).toLocaleDateString("id-ID")}
           </span>
         )}
       </div>

@@ -21,7 +21,7 @@ export function TasksPage() {
     setLoading(true);
     setError(null);
     try {
-      const params = filter !== "ALL" ? { status: filter.toLowerCase() } : {};
+      const params = filter !== "ALL" ? { status: filter.toUpperCase() } : {};
       const res = await taskService.getAll(params);
       setTasks(res.data || []);
     } catch (err) {
@@ -49,8 +49,8 @@ export function TasksPage() {
     return {
       title: formData.title,
       description: formData.description || "", 
-      status: formData.status ? formData.status.toLowerCase() : "todo",
-      priority: formData.priority ? formData.priority.toLowerCase() : "medium",
+      status: formData.status ? formData.status.toUpperCase() : "TODO",
+      priority: formData.priority ? formData.priority.toUpperCase() : "MEDIUM",
       milestoneId: formData.milestoneId ? Number(formData.milestoneId) : null,
       dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null
     };
