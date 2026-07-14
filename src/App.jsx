@@ -7,6 +7,8 @@ import { ToastContainer } from "./components/ToastContainer";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { TasksPage } from "./pages/TasksPage";
+import { MilestonesPage } from "./pages/MilestonesPage";
+import { MilestoneDetailPage } from "./pages/MilestoneDetailPage";
 import { ProfilePage } from "./pages/ProfilePage";
 
 export default function App() {
@@ -22,6 +24,8 @@ export default function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Navigate to="/tasks" replace />} />
                 <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/milestones" element={<MilestonesPage />} />
+                <Route path="/milestones/:id" element={<MilestoneDetailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
 
