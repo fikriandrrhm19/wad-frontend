@@ -22,6 +22,12 @@ export function useRealTimeMilestones(setMilestones) {
                 if (exists) return prev;
                 return [milestone, ...prev];
             });
+            
+            addToast({
+                type: "SUCCESS",
+                title: "Milestone Baru",
+                message: `Milestone "${milestone.title}" telah ditambahkan secara real-time.`,
+            });
         };
 
         const onMilestoneUpdated = (payload) => {
@@ -46,8 +52,11 @@ export function useRealTimeMilestones(setMilestones) {
             setMilestones(prev => prev.filter(m => Number(m.id) !== Number(milestoneId)));
         };
 
-        const onNotification = (notif) => {
-            if (notif) addToast(notif);
+        const onNotification = (payload) => {
+            const notif = payload?.notification || payload?.data || payload;
+            if (notif && (notif.title || notif.message)) {
+                addToast(notif);
+            }
         };
 
         socket.on("milestone:created", onMilestoneCreated);
