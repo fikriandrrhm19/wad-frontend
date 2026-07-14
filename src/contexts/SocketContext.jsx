@@ -21,9 +21,9 @@ export function SocketProvider({ children }) {
             return;
         }
 
-        const socket = io("http://localhost:3000", {
-            auth: (cb) => {
-                cb({ token: TokenStore.getAccessToken() });
+        const socket = io(import.meta.env.VITE_API_URL, {
+            auth: {
+                token: TokenStore.getAccessToken()
             },
             transports: ["websocket", "polling"],
             reconnectionAttempts: 5,

@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 
-export function TaskForm({ onSubmit, onCancel, initialData = null }) {
+export function TaskForm({ onSubmit, onCancel, initialData = null, milestones = [] }) {
   const isEdit = !!initialData;
 
   const getNormalizedDefaultValues = () => {
@@ -12,6 +12,7 @@ export function TaskForm({ onSubmit, onCancel, initialData = null }) {
         status: "todo",
         priority: "medium",
         dueDate: "",
+        milestoneId: "",
       };
     }
     return {
@@ -21,6 +22,7 @@ export function TaskForm({ onSubmit, onCancel, initialData = null }) {
       dueDate: (initialData.dueDate && !initialData.dueDate.includes("Invalid Date")) 
         ? initialData.dueDate.split("T")[0] 
         : "",
+      milestoneId: initialData.milestoneId ? String(initialData.milestoneId) : "",
     };
   };
 
@@ -42,6 +44,7 @@ export function TaskForm({ onSubmit, onCancel, initialData = null }) {
         dueDate: (initialData.dueDate && !initialData.dueDate.includes("Invalid Date")) 
           ? initialData.dueDate.split("T")[0] 
           : "",
+        milestoneId: initialData.milestoneId ? String(initialData.milestoneId) : "",
       });
     } else {
       reset({
@@ -50,6 +53,7 @@ export function TaskForm({ onSubmit, onCancel, initialData = null }) {
         status: "todo",
         priority: "medium",
         dueDate: "",
+        milestoneId: "",
       });
     }
   }, [initialData, reset]);
@@ -94,6 +98,18 @@ export function TaskForm({ onSubmit, onCancel, initialData = null }) {
           <div className="form-group">
             <label>Tenggat Waktu</label>
             <input type="date" {...register("dueDate")} />
+          </div>
+
+          <div className="form-group">
+            <label>Hubungkan ke Milestone</label>
+            <select {...register("milestoneId")}>
+              <option value="">-- Tanpa Milestone --</option>
+              {milestones.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-actions">

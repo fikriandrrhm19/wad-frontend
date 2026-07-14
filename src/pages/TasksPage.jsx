@@ -3,10 +3,12 @@ import { Navbar } from "../components/Navbar";
 import { TaskCard } from "../components/TaskCard";
 import { TaskForm } from "../components/TaskForm";
 import { taskService } from "../services/task.service";
+import { milestoneService } from "../services/milestone.service";
 import { useRealTimeTasks } from "../hooks/useRealTimeTasks";
 
 export function TasksPage() {
   const [tasks, setTasks] = useState([]);
+  const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -15,14 +17,12 @@ export function TasksPage() {
 
   useRealTimeTasks(setTasks);
 
-  // READ — Mengambil semua data task dari backend (dilengkapi filter status)
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = filter !== "ALL" ? { status: filter.toLowerCase() } : {};
+      const params = filter !== "ALL" ? { status: filter.toUpperCase() } : {};
       const res = await taskService.getAll(params);
-      
       setTasks(res.data || []);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Gagal memuat task");
@@ -31,40 +31,35 @@ export function TasksPage() {
     }
   }, [filter]);
 
+  const fetchMilestones = useCallback(async () => {
+    try {
+      const res = await milestoneService.getAll();
+      setMilestones(res.data || []);
+    } catch (err) {
+      console.error("Gagal memuat daftar milestone untuk pilihan form", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+    fetchMilestones();
+  }, [fetchTasks, fetchMilestones]);
 
-  const preparePayload = (formData, isEditMode = false) => {
-    const payload = {
+  const preparePayload = (formData) => {
+    return {
       title: formData.title,
       description: formData.description || "", 
-      status: formData.status ? formData.status.toLowerCase() : "todo",
-      priority: formData.priority ? formData.priority.toLowerCase() : "medium",
+      status: formData.status ? formData.status.toUpperCase() : "TODO",
+      priority: formData.priority ? formData.priority.toUpperCase() : "MEDIUM",
+      milestoneId: formData.milestoneId ? Number(formData.milestoneId) : null,
+      dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null
     };
-
-    const rawDate = formData.dueDate ? String(formData.dueDate).trim() : "";
-
-    if (rawDate === "" || rawDate.includes("Invalid Date")) {
-      payload.dueDate = isEditMode ? (editTarget?.dueDate ? editTarget.dueDate : null) : null;
-    } else {
-      const timestamp = Date.parse(rawDate);
-      if (!isNaN(timestamp)) {
-        payload.dueDate = new Date(timestamp).toISOString();
-      } else {
-        payload.dueDate = isEditMode ? (editTarget?.dueDate ? editTarget.dueDate : null) : null;
-      }
-    }
-
-    return payload;
   };
 
-  // CREATE — Membuat data task baru
   const handleCreate = async (formData) => {
     try {
-      const cleanData = preparePayload(formData, false);
+      const cleanData = preparePayload(formData);
       const res = await taskService.create(cleanData);
-      
       const newTask = res.data?.data || res.data || res; 
       
       setTasks((prev) => {
@@ -72,7 +67,6 @@ export function TasksPage() {
         if (exists) return prev;
         return [newTask, ...prev];
       });
-      
       setShowForm(false);
     } catch (err) {
       alert(err.response?.data?.error?.message || "Gagal membuat task");
@@ -84,10 +78,9 @@ export function TasksPage() {
     setShowForm(true);
   };
 
-  // UPDATE — Menyimpan perubahan data task lama
   const handleUpdate = async (formData) => {
     try {
-      const cleanData = preparePayload(formData, true);
+      const cleanData = preparePayload(formData);
       const updated = await taskService.update(editTarget.id, cleanData);
       
       setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
@@ -98,7 +91,6 @@ export function TasksPage() {
     }
   };
 
-  // DELETE — Menghapus data task dari backend dan UI
   const handleDelete = async (id) => {
     if (!window.confirm("Yakin ingin menghapus task ini?")) return;
     try {
@@ -159,6 +151,7 @@ export function TasksPage() {
             onSubmit={editTarget ? handleUpdate : handleCreate}
             onCancel={handleCloseForm}
             initialData={editTarget}
+            milestones={milestones}
           />
         )}
       </main>
