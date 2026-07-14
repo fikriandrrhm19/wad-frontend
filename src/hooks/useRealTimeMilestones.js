@@ -30,7 +30,16 @@ export function useRealTimeMilestones(setMilestones) {
 
             if (user.role !== 'ADMIN' && Number(milestone.userId) !== Number(user.userId)) return;
 
-            setMilestones(prev => prev.map(m => Number(m.id) === Number(milestone.id) ? milestone : m));
+            setMilestones(prev => prev.map(m => {
+                if (Number(m.id) === Number(milestone.id)) {
+                    return {
+                        ...m,
+                        ...milestone,
+                        tasks: milestone.tasks || m.tasks
+                    };
+                }
+                return m;
+            }));
             
             addToast({
                 type: "INFO",
@@ -46,14 +55,20 @@ export function useRealTimeMilestones(setMilestones) {
             setMilestones(prev => prev.filter(m => Number(m.id) !== Number(milestoneId)));
         };
 
+        const onNotification = (notif) => {
+            if (notif) addToast(notif);
+        };
+
         socket.on("milestone:created", onMilestoneCreated);
         socket.on("milestone:updated", onMilestoneUpdated);
         socket.on("milestone:deleted", onMilestoneDeleted);
+        socket.on("notification", onNotification);
 
         return () => {
             socket.off("milestone:created", onMilestoneCreated);
             socket.off("milestone:updated", onMilestoneUpdated);
             socket.off("milestone:deleted", onMilestoneDeleted);
+            socket.off("notification", onNotification);
         };
     }, [socket, setMilestones, addToast, user]);
 }
