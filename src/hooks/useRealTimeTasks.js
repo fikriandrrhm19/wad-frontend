@@ -30,7 +30,17 @@ export function useRealTimeTasks(setTasks) {
 
             if (user.role !== 'ADMIN' && Number(task.userId) !== Number(user.userId)) return;
 
-            setTasks(prev => prev.map(t => Number(t.id) === Number(task.id) ? task : t));
+            setTasks(prev => prev.map(t => {
+                if (Number(t.id) === Number(task.id)) {
+                    return {
+                        ...t,
+                        ...task,
+                        user: task.user || t.user,
+                        category: task.category || t.category
+                    };
+                }
+                return t;
+            }));
             
             addToast({
                 type: "INFO",
