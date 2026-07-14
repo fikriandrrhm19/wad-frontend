@@ -9,7 +9,11 @@ export function useRealTimeTasks(setTasks) {
     useEffect(() => {
         if (!socket) return;
 
-        const onTaskCreated = ({ task }) => {
+        const onTaskCreated = (payload) => {
+            const task = payload.task || payload.data || payload;
+            
+            if (!task || !task.id) return;
+
             setTasks(prev => {
                 const exists = prev.some(t => Number(t.id) === Number(task.id));
                 if (exists) return prev;
@@ -17,8 +21,12 @@ export function useRealTimeTasks(setTasks) {
             });
         };
 
-        const onTaskUpdated = ({ task }) => {
-            setTasks(prev => prev.map(t => t.id === task.id ? task : t));
+        const onTaskUpdated = (payload) => {
+            const task = payload.task || payload.data || payload;
+            
+            if (!task || !task.id) return;
+
+            setTasks(prev => prev.map(t => Number(t.id) === Number(task.id) ? task : t));
             
             addToast({
                 type: "INFO",
@@ -27,19 +35,27 @@ export function useRealTimeTasks(setTasks) {
             });
         };
 
-        const onTaskDeleted = ({ taskId }) => {
-            setTasks(prev => prev.filter(t => t.id !== taskId));
+        const onTaskDeleted = (payload) => {
+            const taskId = payload.taskId !== undefined ? payload.taskId : payload;
+            if (!taskId) return;
+
+            setTasks(prev => prev.filter(t => Number(t.id) !== Number(taskId)));
         };
 
-        // Daftarkan listener event task dari backend
+        const onNotification = (notif) => {
+            if (notif) addToast(notif);
+        };
+
         socket.on("task:created", onTaskCreated);
         socket.on("task:updated", onTaskUpdated);
         socket.on("task:deleted", onTaskDeleted);
+        socket.on("notification", onNotification);
 
         return () => {
             socket.off("task:created", onTaskCreated);
             socket.off("task:updated", onTaskUpdated);
             socket.off("task:deleted", onTaskDeleted);
+            socket.off("notification", onNotification);
         };
     }, [socket, setTasks, addToast]);
 }
