@@ -13,10 +13,12 @@ export function AuthProvider({ children }) {
       if (!TokenStore.isLoggedIn()) { setLoading(false); return; }
       try {
         const rfToken = TokenStore.getRefreshToken();
-        const { data } = await api.post("/auth/refresh", { refreshToken: rfToken });
+        const { data } = await api.post("/auth/refresh", { refreshToken: rfToken }, { baseURL: import.meta.env.VITE_API_URL });
+        
         const newAccessToken = data.accessToken; 
         TokenStore.setAccessToken(newAccessToken);
-        const { data: me } = await api.get("/auth/me");
+
+        const { data: me } = await api.get("/auth/me", { baseURL: import.meta.env.VITE_API_URL });
         setUser(me.data);
       } catch (error) {
         TokenStore.clear();
@@ -26,21 +28,21 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(async (email, password) => {
-    const { data } = await api.post("/auth/login", { email, password });
+    const { data } = await api.post("/auth/login", { email, password }, { baseURL: import.meta.env.VITE_API_URL });
     TokenStore.setAccessToken(data.accessToken);
     TokenStore.setRefreshToken(data.refreshToken);
     setUser(data.data);
   }, []);
 
   const register = useCallback(async (name, email, password) => {
-    await api.post("/auth/register", { name, email, password });
+    await api.post("/auth/register", { name, email, password }, { baseURL: import.meta.env.VITE_API_URL });
   }, []);
 
   const logout = useCallback(async () => {
     try {
       const rfToken = TokenStore.getRefreshToken();
-      await api.post("/auth/logout", { refreshToken: rfToken });
-    } catch { /* Ignore logout error */ }
+      await api.post("/auth/logout", { refreshToken: rfToken }, { baseURL: import.meta.env.VITE_API_URL });
+    } catch { /* abaikan */ }
     TokenStore.clear();
     setUser(null);
   }, []);
