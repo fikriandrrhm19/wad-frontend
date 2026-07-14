@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { Navbar } from "../components/Navbar";
 import { milestoneService } from "../services/milestone.service";
 import { useSocket } from "../contexts/SocketContext";
@@ -10,8 +11,10 @@ export function MilestoneDetailPage() {
   const [milestone, setMilestone] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEditForm, setShowForm] = useState(false);
   
   const { socket } = useSocket();
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm();
 
   const fetchDetail = useCallback(async () => {
     setLoading(true);
@@ -19,12 +22,13 @@ export function MilestoneDetailPage() {
     try {
       const data = await milestoneService.getById(id);
       setMilestone(data);
+      reset(data);
     } catch (err) {
       setError(err.response?.data?.error?.message || "Gagal memuat rincian milestone");
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, reset]);
 
   useEffect(() => {
     fetchDetail();
@@ -37,8 +41,9 @@ export function MilestoneDetailPage() {
       fetchDetail();
     };
 
-    const handleMilestoneUpdate = ({ milestone: updated }) => {
-      if (Number(updated.id) === Number(id)) {
+    const handleMilestoneUpdate = (payload) => {
+      const updated = payload.milestone || payload.data || payload;
+      if (updated && Number(updated.id) === Number(id)) {
         setMilestone((prev) => ({ ...prev, ...updated }));
       }
     };
@@ -60,10 +65,22 @@ export function MilestoneDetailPage() {
     if (!milestone) return;
     const nextStatus = milestone.status === "ACHIEVED" ? "PENDING" : "ACHIEVED";
     try {
-      const updated = await milestoneService.update(id, { status: nextStatus });
-      setMilestone((prev) => ({ ...prev, ...updated }));
+      const data = await milestoneService.update(id, { status: nextStatus });
+      const updated = data?.milestone || data?.data || data;
+      setMilestone((prev) => ({ ...prev, ...updated, tasks: prev.tasks }));
     } catch (err) {
       alert("Gagal mengubah status milestone");
+    }
+  };
+
+  const handleEditSubmit = async (formData) => {
+    try {
+      const data = await milestoneService.update(id, formData);
+      const updated = data?.milestone || data?.data || data;
+      setMilestone((prev) => ({ ...prev, ...updated, tasks: prev.tasks }));
+      setShowForm(false);
+    } catch (err) {
+      alert(err.response?.data?.error?.message || "Gagal memperbarui milestone");
     }
   };
 
@@ -104,6 +121,7 @@ export function MilestoneDetailPage() {
         <div className="page-header">
           <h1>{milestone.title}</h1>
           <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button className="btn-primary" onClick={() => setShowForm(true)}>Edit</button>
             <button className="btn-secondary" onClick={handleToggleStatus}>
               Tandai {milestone.status === "ACHIEVED" ? "Tertunda" : "Selesai"}
             </button>
@@ -161,6 +179,36 @@ export function MilestoneDetailPage() {
             </table>
           )}
         </div>
+
+        {showEditForm && (
+          <div className="modal-overlay">
+            <div className="modal-card">
+              <h2>Ubah rincian Milestone</h2>
+              <form onSubmit={handleSubmit(handleEditSubmit)}>
+                <div className="form-group">
+                  <label>Judul Milestone *</label>
+                  <input type="text" {...register("title", { required: "Judul wajib diisi" })} />
+                  {errors.title && <span className="error">{errors.title.message}</span>}
+                </div>
+                <div className="form-group">
+                  <label>Deskripsi</label>
+                  <textarea rows={3} {...register("description")} />
+                </div>
+                <div className="form-group">
+                  <label>Tenggat Waktu *</label>
+                  <input type="date" {...register("dueDate", { required: "Tenggat waktu wajib diisi" })} />
+                  {errors.dueDate && <span className="error">{errors.dueDate.message}</span>}
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setShowForm(false)}>Batal</button>
+                  <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                    {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
