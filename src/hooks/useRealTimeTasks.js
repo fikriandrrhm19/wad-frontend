@@ -1,18 +1,21 @@
 import { useEffect } from "react";
 import { useSocket } from "../contexts/SocketContext";
 import { useNotif } from "../contexts/NotifContext";
+import { useAuth } from "../contexts/AuthContext";
 
 export function useRealTimeTasks(setTasks) {
     const { socket } = useSocket();
     const { addToast } = useNotif();
+    const { user } = useAuth();
 
     useEffect(() => {
-        if (!socket) return;
+        if (!socket || !user) return;
 
         const onTaskCreated = (payload) => {
             const task = payload.task || payload.data || payload;
-            
             if (!task || !task.id) return;
+
+            if (user.role !== 'ADMIN' && Number(task.userId) !== Number(user.userId)) return;
 
             setTasks(prev => {
                 const exists = prev.some(t => Number(t.id) === Number(task.id));
@@ -23,15 +26,16 @@ export function useRealTimeTasks(setTasks) {
 
         const onTaskUpdated = (payload) => {
             const task = payload.task || payload.data || payload;
-            
             if (!task || !task.id) return;
+
+            if (user.role !== 'ADMIN' && Number(task.userId) !== Number(user.userId)) return;
 
             setTasks(prev => prev.map(t => Number(t.id) === Number(task.id) ? task : t));
             
             addToast({
                 type: "INFO",
                 title: "Task Diperbarui",
-                message: `Task "${task.title}" telah diperbarui oleh pengguna lain.`,
+                message: `Task "${task.title}" telah diperbarui.`,
             });
         };
 
@@ -57,5 +61,5 @@ export function useRealTimeTasks(setTasks) {
             socket.off("task:deleted", onTaskDeleted);
             socket.off("notification", onNotification);
         };
-    }, [socket, setTasks, addToast]);
+    }, [socket, setTasks, addToast, user]);
 }
